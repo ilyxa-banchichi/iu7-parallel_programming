@@ -1,11 +1,10 @@
 #include <stdio.h>
 #include <mpi.h>
 
-int main(int argc, char** argv)
+int main(int argc, char ** argv)
 {
         int myrank, nprocs, len;
         char name[MPI_MAX_PROCESSOR_NAME];
-
 
         MPI_Init(&argc, &argv);
 
