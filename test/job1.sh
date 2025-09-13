@@ -1,6 +1,6 @@
 #!/bin/bash
 # Название рассчитываемой задачи. Может быть любым
-#SBATCH --job-name="myHELLO"
+#SBATCH --job-name="Ilya Hello MPI programm"
 #
 #
 # Множество вычислительных узлов для расчёта задачи
