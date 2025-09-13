@@ -10,4 +10,4 @@
 echo "HOSTNAME = $HOSTNAME"
 echo "SLURM_JOB_NODELIST = $SLURM_JOB_NODELIST"
 
-mpirun -np 10 ./your_mpi_program
+mpirun -np 10 ./m
