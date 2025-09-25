@@ -7,8 +7,6 @@
 #
 #SBATCH --time=0-00:05:00
 #
-###SBATCH --time=7-00:00:00
-#
 #SBATCH --ntasks-per-node=1
 #
 #SBATCH --mem=1992
