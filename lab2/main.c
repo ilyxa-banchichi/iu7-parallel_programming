@@ -29,9 +29,6 @@ int main(int argc, char ** argv)
             for ( i = 0; i < SIZE * 1024; i++ )
                 buf[i] = i + 10;
 
-            for ( ; i < SIZE * 1024 + 100; i++ )
-                buf[i] = 0;
-
             for ( cl = 0; cl < 11; cl++ )
             {
                 time = MPI_Wtime();
@@ -39,6 +36,9 @@ int main(int argc, char ** argv)
                 for ( i = 0; i < 100; i++ )
                 {
                     MPI_Send( buf, sz, MPI_INT, myrank + 1, 10, MPI_COMM_WORLD );
+                    if (myrank == 0 && i < 4)
+                        printf("[%d] %6d %6d %6d\n", myrank, buf[0], buf[1], buf[2], buf[sz - 1]);
+
                     MPI_Recv( buf, sz + 100, MPI_INT, myrank + 1, 20, MPI_COMM_WORLD, &st );
                 }
 
@@ -54,24 +54,12 @@ int main(int argc, char ** argv)
     else
     {
         int i, cl, sz = SIZE;
-
-        for ( i = 0; i < SIZE * 1024; i++ )
-            buf[i] = i * 10 + 5;
-
-        for ( ; i < SIZE * 1024 + 100; i++ )
-            buf[i] = 0;
-
         for ( cl = 0; cl < 11; cl++ )
         {
             for ( i = 0; i < 100; i++ )
             {
-                MPI_Send( buf, sz, MPI_INT, myrank - 1, 20, MPI_COMM_WORLD );
                 MPI_Recv( buf, sz + 100, MPI_INT, myrank - 1, 10, MPI_COMM_WORLD, &st );
-
-                if ( i > 97) 
-                {
-                    printf("[%2d] %5d    %5d    %5d\n", myrank, buf[0], buf[1], buf[2]);
-                }
+                MPI_Send( buf, sz, MPI_INT, myrank - 1, 20, MPI_COMM_WORLD );
             }
             sz *= 2;
         }
