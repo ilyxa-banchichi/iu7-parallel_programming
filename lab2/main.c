@@ -37,7 +37,7 @@ int main(int argc, char ** argv)
                 {
                     MPI_Send( buf, sz, MPI_INT, myrank + 1, 10, MPI_COMM_WORLD );
                     if (myrank == 0 && i < 4)
-                        printf("[%d] %6d %6d %6d\n", myrank, buf[0], buf[1], buf[2], buf[sz - 1]);
+                        printf("[%d] %6d %6d %6d %6d\n", myrank, buf[0], buf[1], buf[2], buf[sz - 1]);
 
                     MPI_Recv( buf, sz + 100, MPI_INT, myrank + 1, 20, MPI_COMM_WORLD, &st );
                 }
