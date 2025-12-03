@@ -393,21 +393,96 @@ int main()
 
     ArticleResult *results = (ArticleResult *)malloc(ARTICLES_COUNT * sizeof(ArticleResult));
 
-    printf("Начало раскроя...\n");
+    MPI_Init(&argc, &argv);
 
+    int rank, size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+    if (rank == 0)
+        printf("Начало параллельного раскроя MPI (%d процессов)...\n", size);
+
+    MPI_Barrier(MPI_COMM_WORLD);
     clock_t start = clock();
-    for (int i = 0; i < ARTICLES_COUNT; i++)
+
+    for (int i = rank; i < ARTICLES_COUNT; i += size)
     {
-        printf("Обработка артикула %d...\n", i + 1);
+        printf("Процесс %d обрабатывает артикул %d...\n", rank, i + 1);
         results[i] = cut_article(articles[i]);
     }
+
+    MPI_Barrier(MPI_COMM_WORLD);
     clock_t end = clock();
-    double total_time = (double)(end - start) / CLOCKS_PER_SEC;
-    printf("Total time: %f sec\n", total_time);
 
-    write_results_to_file(articles, results, ARTICLES_COUNT, "cutting_results.txt");
+    // --- Сбор результатов на процесс 0 ---
+    if (rank == 0)
+    {
+        // другие процессы отправляют свои структуры results[i]
+        for (int p = 1; p < size; p++)
+        {
+            for (int i = p; i < ARTICLES_COUNT; i += size)
+            {
+                // Получаем количество листов
+                int sheet_count;
+                MPI_Recv(&sheet_count, 1, MPI_INT, p, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
-    printf("Результаты сохранены в файл cutting_results.txt\n");
+                results[i].sheet_count = sheet_count;
+                results[i].sheets = malloc(sheet_count * sizeof(CutSheet));
+
+                // получаем данные каждого листа
+                for (int s = 0; s < sheet_count; s++)
+                {
+                    int placement_count, used_area;
+                    MPI_Recv(&placement_count, 1, MPI_INT, p, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                    MPI_Recv(&used_area, 1, MPI_INT, p, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+                    results[i].sheets[s].placement_count = placement_count;
+                    results[i].sheets[s].used_area = used_area;
+
+                    results[i].sheets[s].placements =
+                        malloc(placement_count * sizeof(Rectangle));
+
+                    MPI_Recv(results[i].sheets[s].placements,
+                             placement_count * sizeof(Rectangle),
+                             MPI_BYTE, p, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                }
+
+                MPI_Recv(&results[i].total_waste, 1, MPI_INT, p, 0, MPI_COMM_WORLD,
+                         MPI_STATUS_IGNORE);
+            }
+        }
+    }
+    else
+    {
+        // --- отправляем свои результаты процессу 0 ---
+        for (int i = rank; i < ARTICLES_COUNT; i += size)
+        {
+            MPI_Send(&results[i].sheet_count, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+
+            for (int s = 0; s < results[i].sheet_count; s++)
+            {
+                CutSheet *sheet = &results[i].sheets[s];
+
+                MPI_Send(&sheet->placement_count, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+                MPI_Send(&sheet->used_area, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+
+                MPI_Send(sheet->placements,
+                         sheet->placement_count * sizeof(Rectangle),
+                         MPI_BYTE, 0, 0, MPI_COMM_WORLD);
+            }
+
+            MPI_Send(&results[i].total_waste, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+        }
+    }
+
+    if (rank == 0)
+    {
+        double total_time = (double)(end - start) / CLOCKS_PER_SEC;
+        printf("MPI total time: %f sec\n", total_time);
+
+        write_results_to_file(articles, results, ARTICLES_COUNT, "cutting_results.txt");
+        printf("Результаты сохранены в cutting_results.txt\n");
+    }
 
     free_results(results, ARTICLES_COUNT);
     free(results);
@@ -415,5 +490,6 @@ int main()
     for (int i = 0; i < ARTICLES_COUNT; i++)
         free(articles[i].items);
 
+    MPI_Finalize();
     return 0;
 }
