@@ -295,7 +295,7 @@ void free_results(ArticleResult *results, int article_count)
 
 #define ARTICLES_COUNT 10
 
-int main()
+int main(int argc, char **argv)
 {
     Article articles[ARTICLES_COUNT];
 
