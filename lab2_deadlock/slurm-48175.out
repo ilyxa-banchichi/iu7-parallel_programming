@@ -1,0 +1,40 @@
+Hello from processor node-1[6] 0 of 3
+Hello from processor node-3[6] 2 of 3
+[2] Idle
+Hello from processor node-2[6] 1 of 3
+[0]     10     11     12   1033
+[0]      1      1      1      1
+[0]     10     11     12   1033
+[0]      1      1      1      1
+[0] Time = 0.020737  Data =       800 KByte
+[0] Bandwith[0] = 37.675103 MByte/sek
+[0]     10     11     12   2057
+[0]      1      1      1      1
+[0]     10     11     12   2057
+[0]      1      1      1      1
+[0] Time = 0.014008  Data =      1600 KByte
+[0] Bandwith[1] = 111.540943 MByte/sek
+[0]     10     11     12   4105
+[0]      1      1      1      1
+[0]     10     11     12   4105
+[0]      1      1      1      1
+[0] Time = 0.018741  Data =      3200 KByte
+[0] Bandwith[2] = 166.749570 MByte/sek
+[0]     10     11     12   8201
+[0]      1      1      1      1
+[0]     10     11     12   8201
+[0]      1      1      1      1
+[0] Time = 0.023859  Data =      6400 KByte
+[0] Bandwith[3] = 261.958181 MByte/sek
+slurmstepd: error: *** JOB 48175 ON node-1 CANCELLED AT 2025-09-25T18:11:14 DUE TO TIME LIMIT ***
+--------------------------------------------------------------------------
+ORTE has lost communication with a remote daemon.
+
+  HNP daemon   : [[60465,0],0] on node node-1
+  Remote daemon: [[60465,0],7] on node node-8
+
+This is usually due to either a failure of the TCP network
+connection to the node, or possibly an internal failure of
+the daemon itself. We cannot recover from this failure, and
+therefore will terminate the job.
+--------------------------------------------------------------------------

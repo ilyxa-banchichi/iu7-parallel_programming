@@ -1,0 +1,16 @@
+Hello from processor node-1[6] 0 of 3
+Hello from processor node-3[6] 2 of 3
+[2] Idle
+Hello from processor node-2[6] 1 of 3
+slurmstepd: error: *** JOB 48256 ON node-1 CANCELLED AT 2025-10-09T17:12:35 DUE TO TIME LIMIT ***
+--------------------------------------------------------------------------
+ORTE has lost communication with a remote daemon.
+
+  HNP daemon   : [[61695,0],0] on node node-1
+  Remote daemon: [[61695,0],3] on node node-4
+
+This is usually due to either a failure of the TCP network
+connection to the node, or possibly an internal failure of
+the daemon itself. We cannot recover from this failure, and
+therefore will terminate the job.
+--------------------------------------------------------------------------
