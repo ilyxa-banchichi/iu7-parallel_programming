@@ -409,8 +409,9 @@ void MPI_SendArticle(Article a, int p)
         MPI_Send(a.items, hdr.item_count * sizeof(Item), MPI_BYTE, p, 0, MPI_COMM_WORLD);
 }
 
-void MPI_ReceiveArticleResult(MPI_Status *st, ArticleResult *results)
+MPI_Status MPI_ReceiveArticleResult(ArticleResult *results)
 {
+    MPI_Status st;
     int idx, sheet_count;
     MPI_Recv(&idx, 1, MPI_INT, MPI_ANY_SOURCE, 10, MPI_COMM_WORLD, &st);
     MPI_Recv(&sheet_count, 1, MPI_INT, st.MPI_SOURCE, 10, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
@@ -438,6 +439,8 @@ void MPI_ReceiveArticleResult(MPI_Status *st, ArticleResult *results)
         }
     }
     MPI_Recv(&results[idx].total_waste, 1, MPI_INT, st.MPI_SOURCE, 13, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+    return st;
 }
 
 void MPI_SendArticleResult(ArticleResult res)
@@ -492,8 +495,7 @@ int main(int argc, char **argv)
         int finished = 0;
         while (finished < ARTICLES_COUNT)
         {
-            MPI_Status st;
-            MPI_ReceiveArticleResult(&st, results);
+            MPI_Status st = MPI_ReceiveArticleResult(results);
             int worker = st.MPI_SOURCE;
             finished++;
 
