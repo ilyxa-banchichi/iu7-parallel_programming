@@ -377,10 +377,94 @@ void init_articles(Article *articles)
     articles[8].items[4] = (Item){700, 700, 5};
 }
 
+void init_articles_big(Article *articles)
+{
+    articles[0].sheet_width = 2000;
+    articles[0].sheet_height = 1000;
+    articles[0].item_count = 2;
+    articles[0].items = malloc(articles[0].item_count * sizeof(Item));
+    articles[0].items[0] = (Item){500, 500, 1000};
+    articles[0].items[1] = (Item){300, 400, 500};
+
+    articles[1].sheet_width = 1500;
+    articles[1].sheet_height = 1500;
+    articles[1].item_count = 3;
+    articles[1].items = malloc(articles[1].item_count * sizeof(Item));
+    articles[1].items[0] = (Item){200, 300, 2000};
+    articles[1].items[1] = (Item){100, 100, 3000};
+    articles[1].items[2] = (Item){350, 700, 1500};
+
+    articles[2].sheet_width = 3000;
+    articles[2].sheet_height = 1500;
+    articles[2].item_count = 4;
+    articles[2].items = malloc(articles[2].item_count * sizeof(Item));
+    articles[2].items[0] = (Item){600, 800, 800};
+    articles[2].items[1] = (Item){500, 500, 1200};
+    articles[2].items[2] = (Item){1000, 400, 600};
+    articles[2].items[3] = (Item){300, 300, 2000};
+
+    articles[3].sheet_width = 1200;
+    articles[3].sheet_height = 2400;
+    articles[3].item_count = 3;
+    articles[3].items = malloc(articles[3].item_count * sizeof(Item));
+    articles[3].items[0] = (Item){400, 600, 1000};
+    articles[3].items[1] = (Item){350, 900, 500};
+    articles[3].items[2] = (Item){250, 250, 1600};
+
+    articles[4].sheet_width = 2500;
+    articles[4].sheet_height = 1000;
+    articles[4].item_count = 5;
+    articles[4].items = malloc(articles[4].item_count * sizeof(Item));
+    articles[4].items[0] = (Item){400, 400, 1000};
+    articles[4].items[1] = (Item){500, 300, 2000};
+    articles[4].items[2] = (Item){300, 700, 700};
+    articles[4].items[3] = (Item){200, 200, 3000};
+    articles[4].items[4] = (Item){800, 500, 400};
+
+    articles[5].sheet_width = 1800;
+    articles[5].sheet_height = 900;
+    articles[5].item_count = 4;
+    articles[5].items = malloc(articles[5].item_count * sizeof(Item));
+    articles[5].items[0] = (Item){300, 300, 1500};
+    articles[5].items[1] = (Item){450, 600, 1000};
+    articles[5].items[2] = (Item){600, 400, 800};
+    articles[5].items[3] = (Item){200, 500, 1200};
+
+    articles[6].sheet_width = 2200;
+    articles[6].sheet_height = 2200;
+    articles[6].item_count = 6;
+    articles[6].items = malloc(articles[6].item_count * sizeof(Item));
+    articles[6].items[0] = (Item){700, 700, 500};
+    articles[6].items[1] = (Item){500, 500, 1000};
+    articles[6].items[2] = (Item){300, 900, 600};
+    articles[6].items[3] = (Item){400, 300, 2000};
+    articles[6].items[4] = (Item){900, 900, 300};
+    articles[6].items[5] = (Item){200, 200, 4000};
+
+    articles[7].sheet_width = 1000;
+    articles[7].sheet_height = 3000;
+    articles[7].item_count = 4;
+    articles[7].items = malloc(articles[7].item_count * sizeof(Item));
+    articles[7].items[0] = (Item){200, 800, 1200};
+    articles[7].items[1] = (Item){400, 600, 700};
+    articles[7].items[2] = (Item){300, 300, 1000};
+    articles[7].items[3] = (Item){500, 1000, 400};
+
+    articles[8].sheet_width = 2600;
+    articles[8].sheet_height = 1400;
+    articles[8].item_count = 5;
+    articles[8].items = malloc(articles[8].item_count * sizeof(Item));
+    articles[8].items[0] = (Item){600, 600, 1000};
+    articles[8].items[1] = (Item){900, 300, 600};
+    articles[8].items[2] = (Item){400, 800, 800};
+    articles[8].items[3] = (Item){200, 500, 1500};
+    articles[8].items[4] = (Item){700, 700, 500};
+}
+
 int main()
 {
     Article articles[ARTICLES_COUNT];
-    init_articles(articles);
+    init_articles_big(articles);
 
     ArticleResult *results = (ArticleResult *)malloc(ARTICLES_COUNT * sizeof(ArticleResult));
 
