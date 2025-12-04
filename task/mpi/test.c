@@ -303,7 +303,7 @@ void init_articles(Article *articles)
     articles[0].sheet_height = 1000;
     articles[0].item_count = 2;
     articles[0].items = malloc(articles[0].item_count * sizeof(Item));
-    articles[0].items[0] = (Item){500, 500, 10};
+    articles[0].items[0] = (Item){500, 500, 1000000};
     articles[0].items[1] = (Item){300, 400, 5};
 
     articles[1].index = 1;
@@ -592,7 +592,7 @@ int main(int argc, char **argv)
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
 
     Article articles[ARTICLES_COUNT];
-    init_articles_big(articles);
+    init_articles(articles);
 
     ArticleResult *results = (ArticleResult *)malloc(ARTICLES_COUNT * sizeof(ArticleResult));
 
