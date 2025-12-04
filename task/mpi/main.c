@@ -298,6 +298,7 @@ void free_results(ArticleResult *results, int article_count)
 
 void init_articles(Article *articles)
 {
+    articles[0].index = 0;
     articles[0].sheet_width = 2000;
     articles[0].sheet_height = 1000;
     articles[0].item_count = 2;
@@ -305,6 +306,7 @@ void init_articles(Article *articles)
     articles[0].items[0] = (Item){500, 500, 100};
     articles[0].items[1] = (Item){300, 400, 50};
 
+    articles[1].index = 1;
     articles[1].sheet_width = 1500;
     articles[1].sheet_height = 1500;
     articles[1].item_count = 3;
@@ -313,6 +315,7 @@ void init_articles(Article *articles)
     articles[1].items[1] = (Item){100, 100, 300};
     articles[1].items[2] = (Item){350, 700, 150};
 
+    articles[2].index = 2;
     articles[2].sheet_width = 3000;
     articles[2].sheet_height = 1500;
     articles[2].item_count = 4;
@@ -322,6 +325,7 @@ void init_articles(Article *articles)
     articles[2].items[2] = (Item){1000, 400, 60};
     articles[2].items[3] = (Item){300, 300, 200};
 
+    articles[3].index = 3;
     articles[3].sheet_width = 1200;
     articles[3].sheet_height = 2400;
     articles[3].item_count = 3;
@@ -330,6 +334,7 @@ void init_articles(Article *articles)
     articles[3].items[1] = (Item){350, 900, 50};
     articles[3].items[2] = (Item){250, 250, 160};
 
+    articles[4].index = 4;
     articles[4].sheet_width = 2500;
     articles[4].sheet_height = 1000;
     articles[4].item_count = 5;
@@ -340,6 +345,7 @@ void init_articles(Article *articles)
     articles[4].items[3] = (Item){200, 200, 300};
     articles[4].items[4] = (Item){800, 500, 40};
 
+    articles[5].index = 5;
     articles[5].sheet_width = 1800;
     articles[5].sheet_height = 900;
     articles[5].item_count = 4;
@@ -349,6 +355,7 @@ void init_articles(Article *articles)
     articles[5].items[2] = (Item){600, 400, 80};
     articles[5].items[3] = (Item){200, 500, 120};
 
+    articles[6].index = 6;
     articles[6].sheet_width = 2200;
     articles[6].sheet_height = 2200;
     articles[6].item_count = 6;
@@ -360,6 +367,7 @@ void init_articles(Article *articles)
     articles[6].items[4] = (Item){900, 900, 30};
     articles[6].items[5] = (Item){200, 200, 400};
 
+    articles[7].index = 7;
     articles[7].sheet_width = 1000;
     articles[7].sheet_height = 3000;
     articles[7].item_count = 4;
@@ -369,6 +377,7 @@ void init_articles(Article *articles)
     articles[7].items[2] = (Item){300, 300, 100};
     articles[7].items[3] = (Item){500, 1000, 40};
 
+    articles[8].index = 8;
     articles[8].sheet_width = 2600;
     articles[8].sheet_height = 1400;
     articles[8].item_count = 5;
@@ -378,6 +387,26 @@ void init_articles(Article *articles)
     articles[8].items[2] = (Item){400, 800, 80};
     articles[8].items[3] = (Item){200, 500, 150};
     articles[8].items[4] = (Item){700, 700, 50};
+}
+
+typedef struct
+{
+    int index;
+    int sheet_width;
+    int sheet_height;
+    int item_count;
+} ArticleHeader;
+
+void MPI_SendArticle(Article a, int p)
+{
+    ArticleHeader hdr;
+    hdr.index = a.index;
+    hdr.sheet_width = a.sheet_width;
+    hdr.sheet_height = a.sheet_height;
+    hdr.item_count = a.item_count;
+    MPI_Send(&hdr, sizeof(ArticleHeader), MPI_BYTE, p, 0, MPI_COMM_WORLD);
+    if (hdr.item_count > 0)
+        MPI_Send(a.items, hdr.item_count * sizeof(Item), MPI_BYTE, p, 0, MPI_COMM_WORLD);
 }
 
 int main(int argc, char **argv)
@@ -400,7 +429,7 @@ int main(int argc, char **argv)
         int next_article = 0;
         for (int p = 1; p < nprocs && next_article < ARTICLES_COUNT; p++)
         {
-            MPI_Send(&articles[next_article], sizeof(Article), MPI_BYTE, p, 0, MPI_COMM_WORLD);
+            MPI_SendArticle(articles[next_article], p);
             next_article++;
         }
 
@@ -408,18 +437,40 @@ int main(int argc, char **argv)
         while (finished < ARTICLES_COUNT)
         {
             MPI_Status st;
+            int idx, sheet_count;
+            MPI_Recv(&idx, 1, MPI_INT, MPI_ANY_SOURCE, 10, MPI_COMM_WORLD, &st);
+            MPI_Recv(&sheet_count, 1, MPI_INT, st.MPI_SOURCE, 10, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
-            ArticleResult res;
-            MPI_Recv(&res, sizeof(ArticleResult), MPI_BYTE, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &st);
+            results[idx].index = idx;
+            results[idx].sheet_count = sheet_count;
+            results[idx].sheets = malloc(sheet_count * sizeof(CutSheet));
+
+            for (int s = 0; s < sheet_count; ++s)
+            {
+                int placement_count, used_area;
+                MPI_Recv(&placement_count, 1, MPI_INT, st.MPI_SOURCE, 11, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                MPI_Recv(&used_area, 1, MPI_INT, st.MPI_SOURCE, 11, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+                results[idx].sheets[s].placement_count = placement_count;
+                results[idx].sheets[s].used_area = used_area;
+
+                results[idx].sheets[s].placements = NULL;
+                if (placement_count > 0)
+                {
+                    results[idx].sheets[s].placements = malloc(placement_count * sizeof(Rectangle));
+                    MPI_Recv(results[idx].sheets[s].placements,
+                             placement_count * sizeof(Rectangle),
+                             MPI_BYTE, st.MPI_SOURCE, 12, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                }
+            }
+            MPI_Recv(&results[idx].total_waste, 1, MPI_INT, st.MPI_SOURCE, 13, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
             int worker = st.MPI_SOURCE;
-
-            results[res.index] = res;
             finished++;
 
             if (next_article < ARTICLES_COUNT)
             {
-                MPI_Send(&articles[next_article], sizeof(Article), MPI_BYTE, worker, 0, MPI_COMM_WORLD);
+                MPI_SendArticle(articles[next_article], p);
                 next_article++;
             }
             else
@@ -447,18 +498,50 @@ int main(int argc, char **argv)
         while (1)
         {
             MPI_Status st;
-
-            Article task;
+            ArticleHeader hdr;
 
             MPI_Recv(&task, sizeof(Article), MPI_BYTE, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &st);
-
             if (st.MPI_TAG == 1)
                 break;
+
+            Article task;
+            task.index = hdr.index;
+            task.sheet_width = hdr.sheet_width;
+            task.sheet_height = hdr.sheet_height;
+            task.item_count = hdr.item_count;
+            task.items = NULL;
+
+            if (task.item_count > 0)
+            {
+                task.items = malloc(task.item_count * sizeof(Item));
+                MPI_Recv(task.items, task.item_count * sizeof(Item), MPI_BYTE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            }
 
             ArticleResult res = cut_article(task);
             res.index = task.index;
 
-            MPI_Send(&res, sizeof(ArticleResult), MPI_BYTE, 0, 0, MPI_COMM_WORLD);
+            MPI_Send(&res.index, 1, MPI_INT, 0, 10, MPI_COMM_WORLD);
+            MPI_Send(&res.sheet_count, 1, MPI_INT, 0, 10, MPI_COMM_WORLD);
+
+            for (int s = 0; s < res.sheet_count; ++s)
+            {
+                int placement_count = res.sheets[s].placement_count;
+                int used_area = res.sheets[s].used_area;
+
+                MPI_Send(&placement_count, 1, MPI_INT, 0, 11, MPI_COMM_WORLD);
+                MPI_Send(&used_area, 1, MPI_INT, 0, 11, MPI_COMM_WORLD);
+
+                if (placement_count > 0)
+                {
+                    MPI_Send(res.sheets[s].placements,
+                             placement_count * sizeof(Rectangle),
+                             MPI_BYTE, 0, 12, MPI_COMM_WORLD);
+                }
+            }
+
+            MPI_Send(&res.total_waste, 1, MPI_INT, 0, 13, MPI_COMM_WORLD);
+
+            free(task.items);
             free_results(&res, 1);
         }
     }
