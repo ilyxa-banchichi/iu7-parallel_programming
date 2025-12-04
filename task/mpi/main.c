@@ -542,11 +542,11 @@ int main(int argc, char **argv)
         write_results_to_file(articles, results, ARTICLES_COUNT, "cutting_results.txt");
         printf("Результаты сохранены в cutting_results.txt\n");
 
-        free_results(results, ARTICLES_COUNT);
-        free(results);
+        // free_results(results, ARTICLES_COUNT);
+        // free(results);
 
-        for (int i = 0; i < ARTICLES_COUNT; i++)
-            free(articles[i].items);
+        // for (int i = 0; i < ARTICLES_COUNT; i++)
+        //     free(articles[i].items);
     }
     else
     {
