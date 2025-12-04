@@ -591,9 +591,6 @@ int main(int argc, char **argv)
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
 
-    MPI_Barrier(MPI_COMM_WORLD);
-    clock_t start = clock();
-
     if (rank == 0)
     {
         printf("Начало параллельного раскроя MPI (%d процессов)...\n", nprocs);
@@ -601,6 +598,8 @@ int main(int argc, char **argv)
         Article articles[ARTICLES_COUNT];
         init_articles_big(articles);
         ArticleResult *results = (ArticleResult *)malloc(ARTICLES_COUNT * sizeof(ArticleResult));
+
+        clock_t start = clock();
 
         int next_article = 0;
         for (int p = 1; p < nprocs && next_article < ARTICLES_COUNT; p++)
