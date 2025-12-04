@@ -242,11 +242,11 @@ ArticleResult cut_article(Article article)
         int sheet_waste = article.sheet_width * article.sheet_height - current_sheet->used_area;
         result.total_waste += sheet_waste;
 
-        // free(free_rects);
+        free(free_rects);
         result.sheet_count++;
     }
 
-    // free(items_to_cut);
+    free(items_to_cut);
     return result;
 }
 
@@ -288,12 +288,12 @@ void write_results_to_file(Article *articles, ArticleResult *results, int articl
 
 void free_results(ArticleResult *results, int article_count)
 {
-    // for (int i = 0; i < article_count; i++)
-    // {
-    //     for (int j = 0; j < results[i].sheet_count; j++)
-    //         free(results[i].sheets[j].placements);
-    //     free(results[i].sheets);
-    // }
+    for (int i = 0; i < article_count; i++)
+    {
+        for (int j = 0; j < results[i].sheet_count; j++)
+            free(results[i].sheets[j].placements);
+        free(results[i].sheets);
+    }
 }
 
 void init_articles(Article *articles)
@@ -634,11 +634,11 @@ int main(int argc, char **argv)
         write_results_to_file(articles, results, ARTICLES_COUNT, "cutting_results.txt");
         printf("Результаты сохранены в cutting_results.txt\n");
 
-        // free_results(results, ARTICLES_COUNT);
-        // free(results);
+        free_results(results, ARTICLES_COUNT);
+        free(results);
 
-        // for (int i = 0; i < ARTICLES_COUNT; i++)
-        //     free(articles[i].items);
+        for (int i = 0; i < ARTICLES_COUNT; i++)
+            free(articles[i].items);
     }
     else
     {
@@ -656,8 +656,8 @@ int main(int argc, char **argv)
 
             MPI_SendArticleResult(res);
 
-            // free(task.items);
-            // free_results(&res, 1);
+            free(task.items);
+            free_results(&res, 1);
         }
     }
 
