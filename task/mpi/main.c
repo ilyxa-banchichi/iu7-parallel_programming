@@ -5,7 +5,7 @@
 #include <mpi.h>
 
 #define INITIAL_MAX_SHEETS 10
-#define ARTICLES_COUNT 10
+#define ARTICLES_COUNT 9
 
 typedef struct
 {
