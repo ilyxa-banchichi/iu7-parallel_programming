@@ -439,14 +439,15 @@ void init_articles_big(Article *articles)
     articles[4].items[4] = (Item){800, 500, 400};
 
     articles[5].index = 5;
-    articles[5].sheet_width = 1800;
-    articles[5].sheet_height = 900;
-    articles[5].item_count = 4;
+    articles[5].sheet_width = 2500;
+    articles[5].sheet_height = 1000;
+    articles[5].item_count = 5;
     articles[5].items = malloc(articles[5].item_count * sizeof(Item));
-    articles[5].items[0] = (Item){300, 300, 1500};
-    articles[5].items[1] = (Item){450, 600, 1000};
-    articles[5].items[2] = (Item){600, 400, 800};
-    articles[5].items[3] = (Item){200, 500, 1200};
+    articles[5].items[0] = (Item){400, 400, 1000};
+    articles[5].items[1] = (Item){500, 300, 2000};
+    articles[5].items[2] = (Item){300, 700, 700};
+    articles[5].items[3] = (Item){200, 200, 3000};
+    articles[5].items[4] = (Item){800, 500, 400};
 
     articles[6].index = 6;
     articles[6].sheet_width = 2200;
