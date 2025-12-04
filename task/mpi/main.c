@@ -409,6 +409,61 @@ void MPI_SendArticle(Article a, int p)
         MPI_Send(a.items, hdr.item_count * sizeof(Item), MPI_BYTE, p, 0, MPI_COMM_WORLD);
 }
 
+void MPI_ReceiveArticleResult(MPI_Status *st, ArticleResult *results)
+{
+    int idx, sheet_count;
+    MPI_Recv(&idx, 1, MPI_INT, MPI_ANY_SOURCE, 10, MPI_COMM_WORLD, &st);
+    MPI_Recv(&sheet_count, 1, MPI_INT, st.MPI_SOURCE, 10, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+    results[idx].index = idx;
+    results[idx].sheet_count = sheet_count;
+    results[idx].sheets = malloc(sheet_count * sizeof(CutSheet));
+
+    for (int s = 0; s < sheet_count; ++s)
+    {
+        int placement_count, used_area;
+        MPI_Recv(&placement_count, 1, MPI_INT, st.MPI_SOURCE, 11, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(&used_area, 1, MPI_INT, st.MPI_SOURCE, 11, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+        results[idx].sheets[s].placement_count = placement_count;
+        results[idx].sheets[s].used_area = used_area;
+
+        results[idx].sheets[s].placements = NULL;
+        if (placement_count > 0)
+        {
+            results[idx].sheets[s].placements = malloc(placement_count * sizeof(Rectangle));
+            MPI_Recv(results[idx].sheets[s].placements,
+                     placement_count * sizeof(Rectangle),
+                     MPI_BYTE, st.MPI_SOURCE, 12, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        }
+    }
+    MPI_Recv(&results[idx].total_waste, 1, MPI_INT, st.MPI_SOURCE, 13, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+}
+
+void MPI_SendArticleResult(ArticleResult res)
+{
+    MPI_Send(&res.index, 1, MPI_INT, 0, 10, MPI_COMM_WORLD);
+    MPI_Send(&res.sheet_count, 1, MPI_INT, 0, 10, MPI_COMM_WORLD);
+
+    for (int s = 0; s < res.sheet_count; ++s)
+    {
+        int placement_count = res.sheets[s].placement_count;
+        int used_area = res.sheets[s].used_area;
+
+        MPI_Send(&placement_count, 1, MPI_INT, 0, 11, MPI_COMM_WORLD);
+        MPI_Send(&used_area, 1, MPI_INT, 0, 11, MPI_COMM_WORLD);
+
+        if (placement_count > 0)
+        {
+            MPI_Send(res.sheets[s].placements,
+                     placement_count * sizeof(Rectangle),
+                     MPI_BYTE, 0, 12, MPI_COMM_WORLD);
+        }
+    }
+
+    MPI_Send(&res.total_waste, 1, MPI_INT, 0, 13, MPI_COMM_WORLD);
+}
+
 int main(int argc, char **argv)
 {
     MPI_Init(&argc, &argv);
@@ -438,34 +493,7 @@ int main(int argc, char **argv)
         while (finished < ARTICLES_COUNT)
         {
             MPI_Status st;
-            int idx, sheet_count;
-            MPI_Recv(&idx, 1, MPI_INT, MPI_ANY_SOURCE, 10, MPI_COMM_WORLD, &st);
-            MPI_Recv(&sheet_count, 1, MPI_INT, st.MPI_SOURCE, 10, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
-            results[idx].index = idx;
-            results[idx].sheet_count = sheet_count;
-            results[idx].sheets = malloc(sheet_count * sizeof(CutSheet));
-
-            for (int s = 0; s < sheet_count; ++s)
-            {
-                int placement_count, used_area;
-                MPI_Recv(&placement_count, 1, MPI_INT, st.MPI_SOURCE, 11, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                MPI_Recv(&used_area, 1, MPI_INT, st.MPI_SOURCE, 11, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
-                results[idx].sheets[s].placement_count = placement_count;
-                results[idx].sheets[s].used_area = used_area;
-
-                results[idx].sheets[s].placements = NULL;
-                if (placement_count > 0)
-                {
-                    results[idx].sheets[s].placements = malloc(placement_count * sizeof(Rectangle));
-                    MPI_Recv(results[idx].sheets[s].placements,
-                             placement_count * sizeof(Rectangle),
-                             MPI_BYTE, st.MPI_SOURCE, 12, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                }
-            }
-            MPI_Recv(&results[idx].total_waste, 1, MPI_INT, st.MPI_SOURCE, 13, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
+            MPI_ReceiveArticleResult(&st, results);
             int worker = st.MPI_SOURCE;
             finished++;
 
@@ -521,29 +549,10 @@ int main(int argc, char **argv)
             ArticleResult res = cut_article(task);
             res.index = task.index;
 
-            MPI_Send(&res.index, 1, MPI_INT, 0, 10, MPI_COMM_WORLD);
-            MPI_Send(&res.sheet_count, 1, MPI_INT, 0, 10, MPI_COMM_WORLD);
+            MPI_SendArticleResult(res);
 
-            for (int s = 0; s < res.sheet_count; ++s)
-            {
-                int placement_count = res.sheets[s].placement_count;
-                int used_area = res.sheets[s].used_area;
-
-                MPI_Send(&placement_count, 1, MPI_INT, 0, 11, MPI_COMM_WORLD);
-                MPI_Send(&used_area, 1, MPI_INT, 0, 11, MPI_COMM_WORLD);
-
-                if (placement_count > 0)
-                {
-                    MPI_Send(res.sheets[s].placements,
-                             placement_count * sizeof(Rectangle),
-                             MPI_BYTE, 0, 12, MPI_COMM_WORLD);
-                }
-            }
-
-            MPI_Send(&res.total_waste, 1, MPI_INT, 0, 13, MPI_COMM_WORLD);
-
-            free(task.items);
-            free_results(&res, 1);
+            // free(task.items);
+            // free_results(&res, 1);
         }
     }
 
