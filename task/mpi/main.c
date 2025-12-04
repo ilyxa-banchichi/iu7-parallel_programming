@@ -418,13 +418,13 @@ int MPI_ReceiveArticle(Article *task)
     if (st.MPI_TAG == 1)
         return 1;
 
-    tas->index = hdr.index;
+    task->index = hdr.index;
     task->sheet_width = hdr.sheet_width;
     task->sheet_height = hdr.sheet_height;
     task->item_count = hdr.item_count;
     task->items = NULL;
 
-    if (task.item_count > 0)
+    if (task->item_count > 0)
     {
         task->items = malloc(task->item_count * sizeof(Item));
         MPI_Recv(task->items, task->item_count * sizeof(Item), MPI_BYTE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
