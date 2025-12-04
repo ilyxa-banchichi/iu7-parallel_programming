@@ -459,7 +459,7 @@ int main(int argc, char **argv)
             res.index = task.index;
 
             MPI_Send(&res, sizeof(ArticleResult), MPI_BYTE, 0, 0, MPI_COMM_WORLD);
-            free_results(res, 1);
+            free_results(&res, 1);
         }
     }
 
