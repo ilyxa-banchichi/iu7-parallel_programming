@@ -4,7 +4,7 @@
 #include <time.h>
 #include <mpi.h>
 
-#define INITIAL_MAX_SHEETS 10000
+#define INITIAL_MAX_SHEETS 500
 #define ARTICLES_COUNT 9
 
 typedef struct
