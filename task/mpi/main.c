@@ -409,6 +409,30 @@ void MPI_SendArticle(Article a, int p)
         MPI_Send(a.items, hdr.item_count * sizeof(Item), MPI_BYTE, p, 0, MPI_COMM_WORLD);
 }
 
+int MPI_ReceiveArticle(Article *task)
+{
+    ArticleHeader hdr;
+    MPI_Status st;
+    MPI_Recv(&hdr, sizeof(ArticleHeader), MPI_BYTE, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &st);
+
+    if (st.MPI_TAG == 1)
+        return 1;
+
+    tas->index = hdr.index;
+    task->sheet_width = hdr.sheet_width;
+    task->sheet_height = hdr.sheet_height;
+    task->item_count = hdr.item_count;
+    task->items = NULL;
+
+    if (task.item_count > 0)
+    {
+        task->items = malloc(task->item_count * sizeof(Item));
+        MPI_Recv(task->items, task->item_count * sizeof(Item), MPI_BYTE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    }
+
+    return 0;
+}
+
 MPI_Status MPI_ReceiveArticleResult(ArticleResult *results)
 {
     MPI_Status st;
@@ -528,25 +552,12 @@ int main(int argc, char **argv)
     {
         while (1)
         {
-            ArticleHeader hdr;
-            MPI_Status st;
-            MPI_Recv(&hdr, sizeof(ArticleHeader), MPI_BYTE, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &st);
-
-            if (st.MPI_TAG == 1)
+            Article task;
+            int status = MPI_ReceiveArticle(&task);
+            if (status == 1)
                 break;
 
-            Article task;
-            task.index = hdr.index;
-            task.sheet_width = hdr.sheet_width;
-            task.sheet_height = hdr.sheet_height;
-            task.item_count = hdr.item_count;
-            task.items = NULL;
-
-            if (task.item_count > 0)
-            {
-                task.items = malloc(task.item_count * sizeof(Item));
-                MPI_Recv(task.items, task.item_count * sizeof(Item), MPI_BYTE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-            }
+            printf("Процесс %d начал раскрой артилка %d\n", rank, task.index);
 
             ArticleResult res = cut_article(task);
             res.index = task.index;
