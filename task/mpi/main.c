@@ -444,25 +444,22 @@ int main(int argc, char **argv)
     }
     else
     {
-        (rank != 0)
+        while (1)
         {
-            while (1)
-            {
-                MPI_Status st;
+            MPI_Status st;
 
-                Article task;
+            Article task;
 
-                MPI_Recv(&task, sizeof(Article), MPI_BYTE, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &st);
+            MPI_Recv(&task, sizeof(Article), MPI_BYTE, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &st);
 
-                if (st.MPI_TAG == 1)
-                    break;
+            if (st.MPI_TAG == 1)
+                break;
 
-                ArticleResult res = cut_article(task);
-                res.index = task.index;
+            ArticleResult res = cut_article(task);
+            res.index = task.index;
 
-                MPI_Send(&res, sizeof(ArticleResult), MPI_BYTE, 0, 0, MPI_COMM_WORLD);
-                free_results(res, 1);
-            }
+            MPI_Send(&res, sizeof(ArticleResult), MPI_BYTE, 0, 0, MPI_COMM_WORLD);
+            free_results(res, 1);
         }
     }
 
