@@ -5,6 +5,7 @@
 #include <mpi.h>
 
 #define INITIAL_MAX_SHEETS 10
+#define ARTICLES_COUNT 10
 
 typedef struct
 {
@@ -293,12 +294,8 @@ void free_results(ArticleResult *results, int article_count)
     }
 }
 
-#define ARTICLES_COUNT 10
-
-int main(int argc, char **argv)
+void init_articles(Article *articles)
 {
-    Article articles[ARTICLES_COUNT];
-
     articles[0].sheet_width = 2000;
     articles[0].sheet_height = 1000;
     articles[0].item_count = 2;
@@ -379,116 +376,91 @@ int main(int argc, char **argv)
     articles[8].items[2] = (Item){400, 800, 80};
     articles[8].items[3] = (Item){200, 500, 150};
     articles[8].items[4] = (Item){700, 700, 50};
+}
 
-    articles[9].sheet_width = 3200;
-    articles[9].sheet_height = 1600;
-    articles[9].item_count = 6;
-    articles[9].items = malloc(articles[9].item_count * sizeof(Item));
-    articles[9].items[0] = (Item){800, 400, 100};
-    articles[9].items[1] = (Item){500, 500, 150};
-    articles[9].items[2] = (Item){1200, 600, 40};
-    articles[9].items[3] = (Item){300, 900, 60};
-    articles[9].items[4] = (Item){400, 300, 200};
-    articles[9].items[5] = (Item){600, 600, 80};
-
-    ArticleResult *results = (ArticleResult *)malloc(ARTICLES_COUNT * sizeof(ArticleResult));
-
+int main(int argc, char **argv)
+{
     MPI_Init(&argc, &argv);
-
-    int rank, size;
+    int rank, nprocs;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
 
     if (rank == 0)
-        printf("Начало параллельного раскроя MPI (%d процессов)...\n", size);
-
-    MPI_Barrier(MPI_COMM_WORLD);
-    clock_t start = clock();
-
-    for (int i = rank; i < ARTICLES_COUNT; i += size)
     {
-        printf("Процесс %d обрабатывает артикул %d...\n", rank, i + 1);
-        results[i] = cut_article(articles[i]);
-    }
+        printf("Начало параллельного раскроя MPI (%d процессов)...\n", nprocs);
 
-    MPI_Barrier(MPI_COMM_WORLD);
-    clock_t end = clock();
+        Article articles[ARTICLES_COUNT];
+        init_articles(articles);
+        ArticleResult *results = (ArticleResult *)malloc(ARTICLES_COUNT * sizeof(ArticleResult));
 
-    // --- Сбор результатов на процесс 0 ---
-    if (rank == 0)
-    {
-        // другие процессы отправляют свои структуры results[i]
-        for (int p = 1; p < size; p++)
+        clock_t start = clock();
+
+        int next_article = 0;
+        for (int p = 1; p < size && next_article < ARTICLES_COUNT; p++)
         {
-            for (int i = p; i < ARTICLES_COUNT; i += size)
+            MPI_Send(&articles[next_article], sizeof(Article), MPI_BYTE, p, 0, MPI_COMM_WORLD);
+            next_article++;
+        }
+
+        int finished = 0;
+        while (finished < ARTICLES_COUNT)
+        {
+            MPI_Status st;
+
+            ArticleResult res;
+            MPI_Recv(&res, sizeof(ArticleResult), MPI_BYTE, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &st);
+
+            int worker = st.MPI_SOURCE;
+
+            results[res.index] = res;
+            finished++;
+
+            if (next_article < ARTICLES_COUNT)
             {
-                // Получаем количество листов
-                int sheet_count;
-                MPI_Recv(&sheet_count, 1, MPI_INT, p, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
-                results[i].sheet_count = sheet_count;
-                results[i].sheets = malloc(sheet_count * sizeof(CutSheet));
-
-                // получаем данные каждого листа
-                for (int s = 0; s < sheet_count; s++)
-                {
-                    int placement_count, used_area;
-                    MPI_Recv(&placement_count, 1, MPI_INT, p, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                    MPI_Recv(&used_area, 1, MPI_INT, p, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
-                    results[i].sheets[s].placement_count = placement_count;
-                    results[i].sheets[s].used_area = used_area;
-
-                    results[i].sheets[s].placements =
-                        malloc(placement_count * sizeof(Rectangle));
-
-                    MPI_Recv(results[i].sheets[s].placements,
-                             placement_count * sizeof(Rectangle),
-                             MPI_BYTE, p, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                }
-
-                MPI_Recv(&results[i].total_waste, 1, MPI_INT, p, 0, MPI_COMM_WORLD,
-                         MPI_STATUS_IGNORE);
+                MPI_Send(&articles[next_article], sizeof(Article), MPI_BYTE, worker, 0, MPI_COMM_WORLD);
+                next_article++;
+            }
+            else
+            {
+                MPI_Send(NULL, 0, MPI_BYTE, worker, 1, MPI_COMM_WORLD);
             }
         }
-    }
-    else
-    {
-        // --- отправляем свои результаты процессу 0 ---
-        for (int i = rank; i < ARTICLES_COUNT; i += size)
-        {
-            MPI_Send(&results[i].sheet_count, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
 
-            for (int s = 0; s < results[i].sheet_count; s++)
-            {
-                CutSheet *sheet = &results[i].sheets[s];
+        clock_t end = clock();
 
-                MPI_Send(&sheet->placement_count, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
-                MPI_Send(&sheet->used_area, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
-
-                MPI_Send(sheet->placements,
-                         sheet->placement_count * sizeof(Rectangle),
-                         MPI_BYTE, 0, 0, MPI_COMM_WORLD);
-            }
-
-            MPI_Send(&results[i].total_waste, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
-        }
-    }
-
-    if (rank == 0)
-    {
         double total_time = (double)(end - start) / CLOCKS_PER_SEC;
         printf("MPI total time: %f sec\n", total_time);
 
         write_results_to_file(articles, results, ARTICLES_COUNT, "cutting_results.txt");
         printf("Результаты сохранены в cutting_results.txt\n");
+
+        free_results(results, ARTICLES_COUNT);
+        free(results);
+
+        for (int i = 0; i < ARTICLES_COUNT; i++)
+            free(articles[i].items);
     }
+    else
+        (rank != 0)
+        {
+            while (1)
+            {
+                MPI_Status st;
 
-    free_results(results, ARTICLES_COUNT);
-    free(results);
+                Article task;
 
-    for (int i = 0; i < ARTICLES_COUNT; i++)
-        free(articles[i].items);
+                MPI_Recv(&task, sizeof(Article), MPI_BYTE, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &st);
+
+                if (st.MPI_TAG == 1)
+                    break;
+
+                ArticleResult res = cut_article(task);
+                res.index = task.index;
+
+                MPI_Send(&res, sizeof(ArticleResult), MPI_BYTE, 0, 0, MPI_COMM_WORLD);
+                free_results(res, 1);
+            }
+        }
 
     MPI_Finalize();
     return 0;

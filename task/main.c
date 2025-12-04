@@ -4,6 +4,7 @@
 #include <time.h>
 
 #define INITIAL_MAX_SHEETS 10
+#define ARTICLES_COUNT 9
 
 typedef struct
 {
@@ -292,12 +293,8 @@ void free_results(ArticleResult *results, int article_count)
     }
 }
 
-#define ARTICLES_COUNT 10
-
-int main()
+void init_articles(Article *articles)
 {
-    Article articles[ARTICLES_COUNT];
-
     articles[0].sheet_width = 2000;
     articles[0].sheet_height = 1000;
     articles[0].item_count = 2;
@@ -378,17 +375,12 @@ int main()
     articles[8].items[2] = (Item){400, 800, 80};
     articles[8].items[3] = (Item){200, 500, 150};
     articles[8].items[4] = (Item){700, 700, 50};
+}
 
-    articles[9].sheet_width = 3200;
-    articles[9].sheet_height = 1600;
-    articles[9].item_count = 6;
-    articles[9].items = malloc(articles[9].item_count * sizeof(Item));
-    articles[9].items[0] = (Item){800, 400, 100};
-    articles[9].items[1] = (Item){500, 500, 150};
-    articles[9].items[2] = (Item){1200, 600, 40};
-    articles[9].items[3] = (Item){300, 900, 60};
-    articles[9].items[4] = (Item){400, 300, 200};
-    articles[9].items[5] = (Item){600, 600, 80};
+int main()
+{
+    Article articles[ARTICLES_COUNT];
+    init_articles(articles);
 
     ArticleResult *results = (ArticleResult *)malloc(ARTICLES_COUNT * sizeof(ArticleResult));
 
