@@ -470,7 +470,7 @@ int main(int argc, char **argv)
 
             if (next_article < ARTICLES_COUNT)
             {
-                MPI_SendArticle(articles[next_article], p);
+                MPI_SendArticle(articles[next_article], worker);
                 next_article++;
             }
             else
@@ -497,10 +497,10 @@ int main(int argc, char **argv)
     {
         while (1)
         {
-            MPI_Status st;
             ArticleHeader hdr;
+            MPI_Status st;
+            MPI_Recv(&hdr, sizeof(ArticleHeader), MPI_BYTE, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &st);
 
-            MPI_Recv(&task, sizeof(Article), MPI_BYTE, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &st);
             if (st.MPI_TAG == 1)
                 break;
 
