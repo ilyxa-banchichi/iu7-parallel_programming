@@ -396,7 +396,7 @@ int main(int argc, char **argv)
         clock_t start = clock();
 
         int next_article = 0;
-        for (int p = 1; p < size && next_article < ARTICLES_COUNT; p++)
+        for (int p = 1; p < nprocs && next_article < ARTICLES_COUNT; p++)
         {
             MPI_Send(&articles[next_article], sizeof(Article), MPI_BYTE, p, 0, MPI_COMM_WORLD);
             next_article++;
