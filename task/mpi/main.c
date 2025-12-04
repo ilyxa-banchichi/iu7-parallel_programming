@@ -242,11 +242,11 @@ ArticleResult cut_article(Article article)
         int sheet_waste = article.sheet_width * article.sheet_height - current_sheet->used_area;
         result.total_waste += sheet_waste;
 
-        free(free_rects);
+        // free(free_rects);
         result.sheet_count++;
     }
 
-    free(items_to_cut);
+    // free(items_to_cut);
     return result;
 }
 
@@ -288,12 +288,12 @@ void write_results_to_file(Article *articles, ArticleResult *results, int articl
 
 void free_results(ArticleResult *results, int article_count)
 {
-    for (int i = 0; i < article_count; i++)
-    {
-        for (int j = 0; j < results[i].sheet_count; j++)
-            free(results[i].sheets[j].placements);
-        free(results[i].sheets);
-    }
+    // for (int i = 0; i < article_count; i++)
+    // {
+    //     for (int j = 0; j < results[i].sheet_count; j++)
+    //         free(results[i].sheets[j].placements);
+    //     free(results[i].sheets);
+    // }
 }
 
 void init_articles(Article *articles)
