@@ -21,6 +21,7 @@ typedef struct
 
 typedef struct
 {
+    int index;
     int sheet_width, sheet_height;
     Item *items;
     int item_count;
@@ -35,6 +36,7 @@ typedef struct
 
 typedef struct
 {
+    int index;
     CutSheet *sheets;
     int sheet_count;
     int total_waste;
@@ -441,6 +443,7 @@ int main(int argc, char **argv)
             free(articles[i].items);
     }
     else
+    {
         (rank != 0)
         {
             while (1)
@@ -461,6 +464,7 @@ int main(int argc, char **argv)
                 free_results(res, 1);
             }
         }
+    }
 
     MPI_Finalize();
     return 0;
