@@ -6,4 +6,4 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --mem=1992
 
-mpirun -np 1 main
+mpirun -np 1 $0
