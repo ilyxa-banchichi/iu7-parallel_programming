@@ -30,8 +30,8 @@ int main(int argc, char **argv)
         int next_article = 0;
         for (int p = 1; p < nprocs && next_article < ARTICLES_COUNT; p++)
         {
-            printf("Index: %d\n", next_article);
-            printf("Id: %d\n", articles[next_article].index);
+            // printf("Index: %d\n", next_article);
+            // printf("Id: %d\n", articles[next_article].index);
             MPI_SendArticle(articles[next_article], p);
             next_article++;
         }
@@ -45,8 +45,8 @@ int main(int argc, char **argv)
 
             if (next_article < ARTICLES_COUNT)
             {
-                printf("Index: %d\n", next_article);
-                printf("Id: %d\n", articles[next_article].index);
+                // printf("Index: %d\n", next_article);
+                // printf("Id: %d\n", articles[next_article].index);
                 MPI_SendArticle(articles[next_article], worker);
                 next_article++;
             }

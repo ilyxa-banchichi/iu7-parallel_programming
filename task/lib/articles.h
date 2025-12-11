@@ -56,7 +56,7 @@ static void init_articles(Article *articles)
     articles[4].items[3] = (Item){200, 200, 30};
     articles[4].items[4] = (Item){800, 500, 4};
 
-    articles[4].index = 5;
+    articles[5].index = 5;
     articles[5].sheet_width = 2500;
     articles[5].sheet_height = 1000;
     articles[5].item_count = 5;
