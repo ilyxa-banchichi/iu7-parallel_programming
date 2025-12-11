@@ -93,7 +93,6 @@ static ArticleResult cut_article(Article article)
 
     Rectangle *items_to_cut = (Rectangle *)malloc(total_items * sizeof(Rectangle));
     int item_index = 0;
-
     for (int i = 0; i < article.item_count; i++)
     {
         Item item = article.items[i];
@@ -204,8 +203,10 @@ static ArticleResult cut_article(Article article)
                     }
                     else
                     {
-                        // освобождаем лист
+                        // завершаем лист
                         free(task->sheet_state->free_rects);
+                        int article_area = task->sheet_state->width * task->sheet_state->height;
+                        atomic_fetch_add(&result.total_waste, article_area - task->sheet_state->current_sheet->used_area);
                     }
 
                     task->sheet_state = NULL;
@@ -225,6 +226,8 @@ static ArticleResult cut_article(Article article)
 
     free(tasks);
     free(items_to_cut);
+
+    result.sheet_count++;
     return result;
 }
 

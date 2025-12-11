@@ -2,7 +2,7 @@
 
 ## Commands
 
-mpicc -o name file_name - компиляция
+mpicc -fopenmp -o main file_name - компиляция
 sbatch job.sh - запуск
 cat slurm-.out - результат
 squeue - очередь

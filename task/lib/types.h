@@ -1,6 +1,8 @@
 #ifndef CUTTING_PROGRAM_TYPES
 #define CUTTING_PROGRAM_TYPES
 
+#include <stdatomic.h>
+
 typedef struct
 {
     int x, y;
@@ -93,7 +95,7 @@ typedef struct
     int index;
     CutSheet *sheets;
     int sheet_count;
-    int total_waste;
+    atomic_int total_waste;
 } ArticleResult;
 
 static inline void free_results(ArticleResult *results, int article_count)
