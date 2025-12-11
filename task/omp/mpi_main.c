@@ -3,8 +3,8 @@
 #include <string.h>
 #include <sys/time.h>
 
-#define USE_MULTITHREAD
 #define USE_MPI
+// #define USE_MULTITHREAD
 // #define DEBUG_LOG
 
 #include "lib/mpi_utils.h"
