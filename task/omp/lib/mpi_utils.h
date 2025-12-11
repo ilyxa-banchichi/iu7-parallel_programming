@@ -3,6 +3,7 @@
 
 #ifdef USE_MPI
 #include <mpi.h>
+#include "types.h"
 
 typedef struct
 {
@@ -12,7 +13,7 @@ typedef struct
     int item_count;
 } ArticleHeader;
 
-void MPI_SendArticle(Article a, int p)
+static void MPI_SendArticle(Article a, int p)
 {
     ArticleHeader hdr;
     hdr.index = a.index;
@@ -24,7 +25,7 @@ void MPI_SendArticle(Article a, int p)
         MPI_Send(a.items, hdr.item_count * sizeof(Item), MPI_BYTE, p, 0, MPI_COMM_WORLD);
 }
 
-int MPI_ReceiveArticle(Article *task)
+static int MPI_ReceiveArticle(Article *task)
 {
     ArticleHeader hdr;
     MPI_Status st;
@@ -48,7 +49,7 @@ int MPI_ReceiveArticle(Article *task)
     return 0;
 }
 
-MPI_Status MPI_ReceiveArticleResult(ArticleResult *results)
+static MPI_Status MPI_ReceiveArticleResult(ArticleResult *results)
 {
     MPI_Status st;
     int idx, sheet_count;
@@ -82,7 +83,7 @@ MPI_Status MPI_ReceiveArticleResult(ArticleResult *results)
     return st;
 }
 
-void MPI_SendArticleResult(ArticleResult res)
+static void MPI_SendArticleResult(ArticleResult res)
 {
     MPI_Send(&res.index, 1, MPI_INT, 0, 10, MPI_COMM_WORLD);
     MPI_Send(&res.sheet_count, 1, MPI_INT, 0, 10, MPI_COMM_WORLD);

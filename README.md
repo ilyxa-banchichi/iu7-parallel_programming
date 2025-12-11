@@ -10,3 +10,5 @@ scancel - отмена
 sinfo - хз
 
 scontrol show partition=debug - показывает количество доступных нод
+
+clang -fopenmp main.c -o main

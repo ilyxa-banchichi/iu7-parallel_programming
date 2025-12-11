@@ -11,7 +11,7 @@
 #include "utils.h"
 #include "articles.h"
 
-int cut_stage(CutTask *task, Rectangle *items_to_cut)
+static int cut_stage(CutTask *task, Rectangle *items_to_cut)
 {
 #ifdef DEBUG_LOG
     printf("[%d] Выполняем задачу %d для листа %d\n", omp_get_thread_num(), task->id, task->sheet_state->id);
@@ -80,7 +80,7 @@ int cut_stage(CutTask *task, Rectangle *items_to_cut)
     return task->sheet_state->current_sheet->placement_count - start_placement_count;
 }
 
-ArticleResult cut_article(Article article)
+static ArticleResult cut_article(Article article)
 {
     ArticleResult result;
     result.sheets = NULL;
