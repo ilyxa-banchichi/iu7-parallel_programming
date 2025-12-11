@@ -1,5 +1,5 @@
 #!/bin/bash
-./build_parall_mpi.sh
-./build_parall.sh
-./build_sync_mpi.sh
-./build_sync.sh
+mpicc -DUSE_MULTITHREAD -fopenmp mpi_main.c -o build/main_mpi_parall
+mpicc -DUSE_MULTITHREAD -fopenmp main.c -o build/main_parall
+mpicc -fopenmp mpi_main.c -o build/main_mpi_sync
+mpicc -fopenmp main.c -o build/main_sync
