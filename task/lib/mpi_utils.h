@@ -16,6 +16,7 @@ typedef struct
 static void MPI_SendArticle(Article a, int p)
 {
     ArticleHeader hdr;
+    printf("%d", a.index);
     hdr.index = a.index;
     hdr.sheet_width = a.sheet_width;
     hdr.sheet_height = a.sheet_height;
