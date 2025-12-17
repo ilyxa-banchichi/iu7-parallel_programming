@@ -14,6 +14,10 @@ typedef struct
     int free_rects_count;
 } SheetState;
 
+#define CUT_TASK_STATUS_WAIT_INIT 0
+#define CUT_TASK_STATUS_IN_PROGRESS 1
+#define CUT_TASK_STATUS_COMPLETE 2
+
 typedef struct
 {
     int id;
@@ -21,7 +25,7 @@ typedef struct
     int total_items_count;
     int free_items_count;
     SheetState *sheet_state;
-    atomic_int status; // 0 - wait_init, 1 - ready_to_run, 2 - in_progress, 3 - complete
+    atomic_int status;
 } CutTask;
 
 CutTask *init_tasks(int count, int total_items)
@@ -38,7 +42,7 @@ CutTask *init_tasks(int count, int total_items)
 
         tasks[i].total_items_count = base_count + (i < remainder ? 1 : 0);
         tasks[i].free_items_count = tasks[i].total_items_count;
-        tasks[i].status = 0;
+        tasks[i].status = CUT_TASK_STATUS_WAIT_INIT;
 
         current_index += tasks[i].total_items_count;
     }
@@ -58,7 +62,7 @@ bool is_all_tasks_completed(CutTask *tasks, int task_count)
 {
     for (int i = 0; i < task_count; i++)
     {
-        if (tasks[i].status != 3)
+        if (tasks[i].status != CUT_TASK_STATUS_COMPLETE)
             return false;
     }
     return true;
@@ -69,18 +73,28 @@ int find_next_wait_init_task(CutTask *tasks, int task_count, int start_idx)
     for (int i = start_idx; i < task_count; i++)
     {
         // ждем, пока текущее выполнение завершится
-        while (tasks[i].status == 1 || tasks[i].status == 2)
+        while (tasks[i].status == CUT_TASK_STATUS_IN_PROGRESS)
         {
         }
 
         // если задача завершена, то пропускаем
-        if (tasks[i].status == 3)
+        if (tasks[i].status == CUT_TASK_STATUS_COMPLETE)
             continue;
 
         return i;
     }
 
     return -1;
+}
+
+void wait_all_tasks(CutTask *tasks, int task_count)
+{
+    for (int i = 0; i < task_count; i++)
+    {
+        while (tasks[i].status == CUT_TASK_STATUS_IN_PROGRESS)
+        {
+        }
+    }
 }
 
 #endif // CUTTING_PROGRAM_TASK

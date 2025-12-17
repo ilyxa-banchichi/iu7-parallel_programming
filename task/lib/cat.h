@@ -141,6 +141,10 @@ static ArticleResult cut_article(Article article)
                 result.sheet_count++;
                 if (result.sheet_count >= max_sheets)
                 {
+#ifdef DEBUG_LOG
+                    printf("[%d] Ожидание всех задач, расширение списка листов\n", thread_idx);
+#endif // DEBUG_LOG
+                    wait_all_tasks(tasks, tasks_count);
                     max_sheets *= 2;
                     result.sheets = (CutSheet *)realloc(result.sheets, max_sheets * sizeof(CutSheet));
                 }
@@ -164,7 +168,7 @@ static ArticleResult cut_article(Article article)
 #ifdef DEBUG_LOG
                 printf("Новый лист %d, стартовая задача %d\n", tasks[next_task_idx].sheet_state->id, tasks[next_task_idx].id);
 #endif // DEBUG_LOG
-                atomic_store(&tasks[next_task_idx].status, 1);
+                atomic_store(&tasks[next_task_idx].status, CUT_TASK_STATUS_IN_PROGRESS);
             }
 
             int task_idx = thread_idx;
@@ -173,20 +177,13 @@ static ArticleResult cut_article(Article article)
 
             CutTask *task = &tasks[task_idx];
 
-            if (task->status == 3)
+            if (task->status == CUT_TASK_STATUS_COMPLETE)
             {
                 if (thread_idx != 0)
                     break;
             }
 
-            if (task->status == 1)
-            {
-                while (atomic_exchange(&task->status, 2) == 2)
-                {
-                }
-            }
-
-            if (task->status == 2)
+            if (task->status == CUT_TASK_STATUS_IN_PROGRESS)
             {
                 int new_placement_count = cut_stage(task, items_to_cut);
                 atomic_fetch_sub(&total_items, new_placement_count);
@@ -199,7 +196,7 @@ static ArticleResult cut_article(Article article)
                     if (next_task_idx != -1)
                     {
                         tasks[next_task_idx].sheet_state = task->sheet_state;
-                        atomic_store(&tasks[next_task_idx].status, 1);
+                        atomic_store(&tasks[next_task_idx].status, CUT_TASK_STATUS_IN_PROGRESS);
                     }
                     else
                     {
@@ -213,9 +210,9 @@ static ArticleResult cut_article(Article article)
                 }
 
                 if (task->free_items_count != 0)
-                    atomic_store(&task->status, 0);
+                    atomic_store(&task->status, CUT_TASK_STATUS_WAIT_INIT);
                 else
-                    atomic_store(&task->status, 3);
+                    atomic_store(&task->status, CUT_TASK_STATUS_COMPLETE);
             }
         }
 
