@@ -6,4 +6,4 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --mem=1992
 
-mpirun -np 4 build/main_parall
+mpirun -np 4 build/main_mpi_parall
