@@ -10,6 +10,7 @@
 
 int main()
 {
+    omp_set_num_threads(8);
     Article articles[ARTICLES_COUNT];
     init_articles(articles);
     ArticleResult *results = (ArticleResult *)malloc(ARTICLES_COUNT * sizeof(ArticleResult));
