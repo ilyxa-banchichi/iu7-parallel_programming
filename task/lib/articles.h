@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include "types.h"
 
-#define ARTICLES_COUNT 1
+#define ARTICLES_COUNT 9
 #define ITEMS_COUNT_MULTIPLIER 1
 
 static void init_articles(Article *articles)
