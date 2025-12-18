@@ -14,20 +14,7 @@ int rect_compare(const void *a, const void *b)
 
 void basic_sort(Rectangle *arr, int n)
 {
-    for (int i = 0; i < n - 1; i++)
-    {
-        for (int j = i + 1; j < n; j++)
-        {
-            int area_i = area(arr[i]);
-            int area_j = area(arr[j]);
-            if (area_i < area_j)
-            {
-                Rectangle temp = arr[i];
-                arr[i] = arr[j];
-                arr[j] = temp;
-            }
-        }
-    }
+    qsort(arr, n, sizeof(Rectangle), rect_compare);
 }
 
 void parallel_sort(Rectangle *arr, int n)
